@@ -27,12 +27,12 @@ var context = canvas.getContext("2d");
 var canvasContainer = document.getElementById("canvasContainer");
 
 canvas.width = canvasContainer.clientWidth;
-canvas.height = canvasContainer.clientHeight*3;
+canvas.height = canvasContainer.clientHeight*5;
 
 var zStep = 0.5;
 var branchProbability = zStep * 0.025;
 var maxDirection = 1.5;
-var changeRate = zStep * 0.2;
+var changeRate = zStep * 0.3;
 var maxR = 50;
 var leafLength = 8;
 var leafWidth = 4;
@@ -66,9 +66,9 @@ function draw(){
 	
 	for(let branch of branches){
 		
-		context.lineWidth = 0.3 + (Math.random()-0.5)*0.2;
+		context.lineWidth = 0.2 + (Math.random()-0.5)*0.2;
 		context.beginPath();
-		context.fillStyle = "#FFFFFF";
+		context.fillStyle = "#FFDDBB";
 		
 		var screenX = canvas.width/2;
 		var screenY = canvas.height - 100 - z;
@@ -120,6 +120,7 @@ function draw(){
 		}
 		
 		//context.fillStyle = "rgba(255, 255, 255, 0.5)";
+		context.fillStyle = "#BBFFAA";
 		context.fill();
 		context.stroke();
 		
@@ -131,9 +132,8 @@ function step(){
 	
 	for(let branch of branches){
 		
-		
 		var thickness = branch.r / maxR;
-		var localMaxDir = maxDirection * (1-thickness + 0.1);
+		var localMaxDir = maxDirection * (Math.pow(1-thickness, 2) + 0.1);
 		var localChangeRate = changeRate * (1-thickness + 0.3);
 		
 		
@@ -148,10 +148,11 @@ function step(){
 		
 		//branch.r = branch.r * 0.999 - 0.05;
 		
-		branch.r = branch.r - zStep * 0.03;
+		//branch.r = branch.r - zStep * 0.03;
+		branch.r = branch.r * (1-0.001*zStep) - 0.01*zStep;
 		
 		if(branch.r > branch.targetR){
-			branch.r = branch.r * (1-0.001*zStep) - zStep * 0.03;
+			branch.r = branch.r * (1-0.006*zStep) - zStep * 0.03;
 		}
 	}
 	
@@ -160,10 +161,11 @@ function step(){
 		var localBranchProbability = branchProbability * (Math.pow(1-thickness, 4)+0.2);
 		
 		if(Math.random() < localBranchProbability && branches.length <= maxBranches){
-			branch.targetR = branch.r * 0.6;
+			let thisBranchWeight = 0.9;
+			branch.targetR = branch.r * thisBranchWeight;
 			branches.push({
 				r: branch.r,
-				targetR: branch.targetR,
+				targetR: (1-thisBranchWeight)*branch.r,
 				x: branch.x,
 				y: branch.y+2,
 				dirX: branch.dirX,
