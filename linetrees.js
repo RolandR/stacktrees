@@ -27,12 +27,16 @@ var context = canvas.getContext("2d");
 var canvasContainer = document.getElementById("canvasContainer");
 
 canvas.width = canvasContainer.clientWidth;
-canvas.height = canvasContainer.clientHeight*5;
+canvas.height = canvasContainer.clientHeight*2;
+
+setTimeout(function(){
+	window.scrollTo(0,document.body.scrollHeight);
+}, 5);
 
 var zStep = 0.5;
 var branchProbability = zStep * 0.025;
 var maxDirection = 1.5;
-var changeRate = zStep * 0.3;
+var changeRate = zStep * 0.2;
 var maxR = 50;
 var leafLength = 8;
 var leafWidth = 4;
@@ -58,7 +62,7 @@ var z = 0;
 
 context.lineWidth = 0.1;
 context.fillStyle = "#FFFFFF";
-context.strokeStyle = "#666666";
+context.strokeStyle = "#444444";
 
 step();
 
@@ -66,9 +70,9 @@ function draw(){
 	
 	for(let branch of branches){
 		
-		context.lineWidth = 0.2 + (Math.random()-0.5)*0.2;
+		context.lineWidth = 0.3 + (Math.random()-0.5)*0.2;
 		context.beginPath();
-		context.fillStyle = "#FFDDBB";
+		context.fillStyle = "#FFFFFF";
 		
 		var screenX = canvas.width/2;
 		var screenY = canvas.height - 100 - z;
@@ -98,31 +102,37 @@ function draw(){
 		context.beginPath();
 		
 		var unthickness = 1-(branch.r / maxR);
-		if(Math.random() < unthickness*unthickness*unthickness - 0.5 && Math.random() < leafProbability){
+		if(Math.random() < Math.pow(unthickness, 3) - 0.5 && Math.random() < leafProbability){
 			//generate leaf cluster
 			
 			for(let i = 0; i < Math.random()*maxLeafsPerCluster+1; i++){
 			
 				var rotation = Math.random() * 2 * Math.PI;
+				//rotation = Math.PI*0.5;
 				
 				var startX = Math.cos(rotation) * branch.r;
-				var startY = localBranchEllipse * Math.sin(rotation) * branch.r;
+				var startY = Math.sin(rotation) * branch.r;
 				
 				var leafX = Math.cos(rotation) * (branch.r + leafLength + leafStem);
-				var leafY = localBranchEllipse * Math.sin(rotation) * (branch.r + leafLength + leafStem);
+				var leafY = Math.sin(rotation) * (branch.r + leafLength + leafStem);
 				
-				
+				context.beginPath();
 				context.moveTo(screenX, screenY);
-				context.ellipse(screenX + leafX, screenY + leafY, leafLength + leafLength * (Math.random()-0.5), leafWidth * (Math.random()*0.8+0.2), rotation, 0, 2*Math.PI);
+				context.ellipse(
+					screenX + leafX,
+					screenY + leafY,
+					leafLength + leafLength * (Math.random()-0.5),
+					leafWidth * (Math.random()*0.8+0.2),
+					rotation,
+					0,
+					2*Math.PI
+				);
+				context.fill();
+				context.stroke();
 				
 			}
 			
 		}
-		
-		//context.fillStyle = "rgba(255, 255, 255, 0.5)";
-		context.fillStyle = "#BBFFAA";
-		context.fill();
-		context.stroke();
 		
 	}
 }
@@ -132,8 +142,9 @@ function step(){
 	
 	for(let branch of branches){
 		
+		
 		var thickness = branch.r / maxR;
-		var localMaxDir = maxDirection * (Math.pow(1-thickness, 2) + 0.1);
+		var localMaxDir = maxDirection * (1-thickness + 0.1);
 		var localChangeRate = changeRate * (1-thickness + 0.3);
 		
 		
@@ -148,11 +159,10 @@ function step(){
 		
 		//branch.r = branch.r * 0.999 - 0.05;
 		
-		//branch.r = branch.r - zStep * 0.03;
-		branch.r = branch.r * (1-0.001*zStep) - 0.01*zStep;
+		branch.r = branch.r - zStep * 0.03;
 		
 		if(branch.r > branch.targetR){
-			branch.r = branch.r * (1-0.006*zStep) - zStep * 0.03;
+			branch.r = branch.r * (1-0.001*zStep) - zStep * 0.03;
 		}
 	}
 	
@@ -161,11 +171,10 @@ function step(){
 		var localBranchProbability = branchProbability * (Math.pow(1-thickness, 4)+0.2);
 		
 		if(Math.random() < localBranchProbability && branches.length <= maxBranches){
-			let thisBranchWeight = 0.9;
-			branch.targetR = branch.r * thisBranchWeight;
+			branch.targetR = branch.r * 0.6;
 			branches.push({
 				r: branch.r,
-				targetR: (1-thisBranchWeight)*branch.r,
+				targetR: branch.targetR,
 				x: branch.x,
 				y: branch.y+2,
 				dirX: branch.dirX,
